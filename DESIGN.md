@@ -1,2 +1,20 @@
 Elevator system design
 ======================
+### Part 1: Design
+
+Design an efficient, secure, and scalable system. Your design should be for your
+definition of a production-ready system. The minimum set of questions your
+design should answer are:
+
+- What’s the most effective way to move people?
+  Always get the closest elevator that is available or moving in the direction requested.
+- How will your system scale?
+  Since Elixir allows for many simultaneous processes without breaking a sweat, the system should scale relatively easily to any real life use case. Synchronicity between the various functions and fault tolerance are the bigger challenges.
+- What can fail? How will your system recover?
+  -Floor mismatch between request and actual location of elevator due to the problem that the elevator is continuously moving; the simplest solution is to move on to the next available when a mismatch is detected
+  -No elevator available; need a request queue of riders (probably subdivided by floor and direction)
+- What are the security concerns?
+  -Can anyone go to any floor? A more advanced design would persist individuals and those individuals would only have access to certain floors
+
+
+In order to be production ready a lift must move in real time, be able to handle new incoming requests        while in transit, and stop to let people out/in.  For MVP purposes, I would narrow this down slightly to fit the CLI implementation.  Any new request counts as a new action for the elevator (it moves to a new floor).  The request process in this case will be synchronous.  If I acheive that soon enough, the next step will be to move even more functionality into genservers so that asynchronous behavior better imitates the real world conditions of an elevator (an elevator can go multiple floors between requests).
