@@ -1,18 +1,18 @@
 defmodule ElevatorOperator do
-  @moduledoc """
-  Documentation for ElevatorOperator.
-  """
+  use Application
 
-  @doc """
-  Hello world.
+  def start(floors, elevators) do
+    import Supervisor.Spec
 
-  ## Examples
+    children = [
+      worker(ElevatorOperator.Attendant, [[floors, elevators]])
+    ]
 
-      iex> ElevatorOperator.hello
-      :world
+    opts = [
+      strategy: :one_for_one,
+      name: ElevatorOperator.Supervisor
+    ]
 
-  """
-  def hello do
-    :world
+    Supervisor.start_link(children, opts)
   end
 end
