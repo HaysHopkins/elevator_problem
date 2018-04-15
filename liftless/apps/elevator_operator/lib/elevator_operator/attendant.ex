@@ -41,11 +41,9 @@ defmodule ElevatorOperator.Attendant do
                             |> enqueue_rider(state.request_queues)
                             |> update_request_state(state)
 
-    find_nearest_elevator(current_floor, destination, state.elevators) |> IO.puts()
+    ElevatorOperator.Optimizer.find_nearest_elevator(state.elevators, current_floor) |> IO.puts()
 
     post_move_state = move_elevators(state.elevators)
-
-    current_statuses |> IO.puts()
 
     {:reply, nil, pre_move_state}
   end
@@ -80,38 +78,9 @@ defmodule ElevatorOperator.Attendant do
       %{state | request_queues: request_queues}
     end
 
-
-    # Elevator Assigning #
-
-    defp find_nearest_elevator(request, destination, elevators) do
-      request - destination
-      |> codirectional(elevators)
-      |> select_closest(request)
-      |> format_closest()
-    end
-
-    defp codirectional(difference, elevators) when difference > 0, do: Elevator.ascending(elevators)
-    defp codirectional(difference, elevators) when difference < 0, do: Elevator.descending(elevators)
-
-    defp select_closest(elevators, request)
-      Map.reduce(elevators, nil, fn(el, nearest) ->
-        if closer?(el, nearest, request), do: el, else: nearest
-      end).name
-    end
-
-    def closer?(elevator, current, request) do
-      (abs(elevator.current_floor - request) < abs(el.current_floor - request))
-    end
-
-    def format_closest(name) do
-      "You will be picked up by elevator #{name}"
-    end
-
-
     # Elevator Movement #
 
-    defp move_elevators do
+    defp move_elevators(elevators) do
 
     end
-
 end
