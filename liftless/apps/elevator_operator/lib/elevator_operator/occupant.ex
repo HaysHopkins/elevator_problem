@@ -1,3 +1,3 @@
 defmodule Occupant do
-  defstruct request_floor: 0, destination_floor: nil
+  defstruct request_floor: nil, destination: nil
 end

@@ -1,6 +1,7 @@
 defmodule ElevatorOperator.Attendant do
   use GenServer
 
+
   # API #
 
   def start_link(args) do
@@ -15,11 +16,19 @@ defmodule ElevatorOperator.Attendant do
     GenServer.call(__MODULE__, {:request_lift, current_floor, destination})
   end
 
+
   # CALLBACKS #
 
   def init(args) do
-    elevators = Enum.map((0..List.last(args)-1), fn(n) -> %Elevator{name: n} end)
-    {:ok, %{floors: List.last(args), elevators: elevators}}
+    top_floor = List.last(args)-1
+    request_queues = Map.new((0..top_floor), fn(floor) ->
+                    {floor, []}
+                  end)
+    elevators = Enum.map((0..top_floor), fn(floor) ->
+                  %Elevator{name: floor, destination_queues: Map.new(request_queues), max_floor: top_floor}
+                end)
+
+    {:ok, %{elevators: elevators, request_queues: request_queues}}
   end
 
   def handle_call(:get_state, _from, state) do
@@ -28,15 +37,16 @@ defmodule ElevatorOperator.Attendant do
 
   def handle_call({:request_lift, current_floor, destination}, _from, state) do
     current_statuses(state.elevators) |> IO.puts()
-    # %Occupant{} |> next_available_lift() |> IO.puts()
+    %Occupant{request_floor: current_floor, destination: destination} |> enqueue_rider() |> IO.puts()
     # move_elevators
     # current_statuses |> IO.puts()
     {:reply, nil, state}
   end
 
-  # HELPER METHODS #
 
-    # Status
+  # PRIVATE HELPER METHODS #
+
+    # Status #
     defp current_statuses(elevators) do
       Enum.reduce(elevators, "", fn(el, msg) ->
         msg <> current_status(el)
@@ -47,4 +57,15 @@ defmodule ElevatorOperator.Attendant do
     end
     defp current_action(nil), do: "ready"
     defp current_action(destination), do: "in transit to #{destination}"
+
+    # Elevator Assignment #
+    defp enqueue_rider(occupant) do
+
+    end
+
+    # Elevator Movement #
+    defp move_elevators do
+
+    end
+
 end
