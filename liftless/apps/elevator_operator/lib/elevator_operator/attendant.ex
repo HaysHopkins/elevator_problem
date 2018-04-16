@@ -12,7 +12,7 @@ defmodule ElevatorOperator.Attendant do
   end
 
   def request_lift(request, request_destination) do
-    GenServer.call(__MODULE__, {:request_lift, request, request_destination})
+    GenServer.call(__MODULE__, {:request_lift, request-1, request_destination-1})
   end
 
 
@@ -48,9 +48,10 @@ defmodule ElevatorOperator.Attendant do
                         |> assign_elevator(state.elevators, request, request_dest)
                         |> create_post_assign_state(post_enqueue_state)
 
-    # post_move_state = post_assign_state
-    #                   |> move_elevators()
-    #                   |> create_post_move_state(post_assign_state)
+    post_move_state = post_assign_state
+                      |> operate_elevators()
+                      # |> IO.inspect()
+                      # |> create_post_move_state(post_assign_state)
 
     {:reply, nil, post_enqueue_state}
   end
@@ -67,8 +68,8 @@ defmodule ElevatorOperator.Attendant do
       |> IO.puts()
     end
 
-    def announce_nearest_elevator({update_needed, steps, name}) do
-      IO.puts "Current requester will be picked up by elevator #{name} in #{steps} moves"
+    def announce_nearest_elevator({update_needed, _, name}) do
+      IO.puts "Current requester will be picked up by elevator #{name}"
       {update_needed, steps, name}
     end
 
@@ -111,8 +112,20 @@ defmodule ElevatorOperator.Attendant do
 
     # Elevator Movement #
 
-    defp move_elevators(elevators) do
-      Enum.map(elevators, fn(el) -> end)
+    defp operate_elevators(state) do
+      Enum.reduce(state.elevators, {[], state.request_queues}, fn(el, {new_els, new_request_queues})->
+
+        boarding = Enum.filter(new_request_queues[el.current_floor], fn(next)->
+                      next.elevator == el.name
+                   end)
+
+        IO.inspect boarding
+        # updated_request_queue = update_request_queue(new_request_queues, boarding, current_floor)
+
+        # new_el = Elevator.execute_turn(el, boarding)
+
+        # {[new_el | new_els], updated_request_queue}
+      end)
     end
 
     # State Maintenance #
@@ -123,6 +136,10 @@ defmodule ElevatorOperator.Attendant do
 
     defp create_post_assign_state(elevators, state) do
       %{state | elevators: elevators}
+    end
+
+    defp update_request_queue() do
+
     end
 
     defp create_post_move_state({elevators, request_queues}, state) do
