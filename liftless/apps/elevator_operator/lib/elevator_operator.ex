@@ -14,6 +14,6 @@ defmodule ElevatorOperator do
     ]
 
     Supervisor.start_link(children, opts)
-    ElevatorOperator.CLI.request_floor(true)
+    ElevatorOperator.CLI.request_floor()
   end
 end

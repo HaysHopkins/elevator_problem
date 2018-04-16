@@ -1,12 +1,12 @@
 defmodule ElevatorOperator.CLI do
   alias ElevatorOperator.{Attendant}
 
-  def request_floor("y"), do: System.stop(0)
-  def request_floor("Y"), do: System.stop(0)
-  def request_floor("yes"), do: System.stop(0)
-  def request_floor("Yes"), do: System.stop(0)
+  # def request_floor("y"), do: System.stop(0)
+  # def request_floor("Y"), do: System.stop(0)
+  # def request_floor("yes"), do: System.stop(0)
+  # def request_floor("Yes"), do: System.stop(0)
 
-  def request_floor(_) do
+  def request_floor() do
     IO.puts "Which floor are you on?"
     request = IO.gets "Make a selection: "
     {sanitized_request, _} = request |> sanitize_selection() |> Integer.parse()
@@ -18,7 +18,7 @@ defmodule ElevatorOperator.CLI do
     Attendant.request_lift(sanitized_request, sanitized_request_dest)
 
     # Just forcing command c seems more user friendly here for larger # of inputs
-    request_floor(sanitized_resp)
+    request_floor()
   end
 
   defp sanitize_selection(selection), do: selection |> String.trim_trailing
