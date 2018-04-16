@@ -50,8 +50,7 @@ defmodule ElevatorOperator.Attendant do
 
     post_move_state = post_assign_state
                       |> operate_elevators()
-                      # |> IO.inspect()
-                      # |> create_post_move_state(post_assign_state)
+                      |> create_post_move_state(post_assign_state)
 
     {:reply, nil, post_enqueue_state}
   end
@@ -68,7 +67,7 @@ defmodule ElevatorOperator.Attendant do
       |> IO.puts()
     end
 
-    def announce_nearest_elevator({update_needed, _, name}) do
+    def announce_nearest_elevator({update_needed, steps, name}) do
       IO.puts "Current requester will be picked up by elevator #{name}"
       {update_needed, steps, name}
     end
@@ -88,11 +87,6 @@ defmodule ElevatorOperator.Attendant do
 
 
     # Elevator Assignment #
-
-    defp enqueue_rider({_, _, name}, request, request_dest, request_queues) do
-      occupant = %Occupant{request: request, request_dest: request_dest, elevator: name}
-      %{request_queues | occupant.request => [occupant | request_queues[occupant.request]]} # CUTTER!
-    end
 
     defp assign_elevator({{false, false}, _, _}, elevators, _, _), do: elevators
     defp assign_elevator({{false, true}, _, name}, elevators, _, request_dest) do
@@ -115,20 +109,29 @@ defmodule ElevatorOperator.Attendant do
     defp operate_elevators(state) do
       Enum.reduce(state.elevators, {[], state.request_queues}, fn(el, {new_els, new_request_queues})->
 
-        boarding = Enum.filter(new_request_queues[el.current_floor], fn(next)->
-                      next.elevator == el.name
-                   end)
+        {boarding, waiting} = Enum.reduce(new_request_queues[el.current_floor], {[], []}, fn(next, {boarding, waiting})->
+                  if (next.elevator == el.name), do: {[next | boarding], waiting}, else: {boarding, [next | waiting]}
+                end)
 
-        IO.inspect boarding
-        # updated_request_queue = update_request_queue(new_request_queues, boarding, current_floor)
+        updated_request_queue = dequeue_riders(new_request_queues, el.current_floor, waiting)
 
-        # new_el = Elevator.execute_turn(el, boarding)
+        new_el = Elevator.execute_turn(el, boarding)
 
-        # {[new_el | new_els], updated_request_queue}
+        {[new_el | new_els], updated_request_queue}
       end)
     end
 
+
     # State Maintenance #
+
+    defp enqueue_rider({_, _, name}, request, request_dest, request_queues) do
+      occupant = %Occupant{request: request, request_dest: request_dest, elevator: name}
+      %{request_queues | occupant.request => [occupant | request_queues[occupant.request]]} # CUTTER!
+    end
+
+    defp dequeue_riders(request_queues, current_floor, waiting) do
+      %{request_queues | current_floor => waiting}
+    end
 
     defp create_post_enqueue_state(request_queues, state) do
       %{state | request_queues: request_queues}
@@ -136,10 +139,6 @@ defmodule ElevatorOperator.Attendant do
 
     defp create_post_assign_state(elevators, state) do
       %{state | elevators: elevators}
-    end
-
-    defp update_request_queue() do
-
     end
 
     defp create_post_move_state({elevators, request_queues}, state) do
