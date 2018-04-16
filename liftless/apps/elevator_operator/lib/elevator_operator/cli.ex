@@ -1,7 +1,6 @@
 defmodule ElevatorOperator.CLI do
   alias ElevatorOperator.{Attendant}
 
-  def request_floor(), do: request_floor(true)
   def request_floor("y"), do: System.stop(0)
   def request_floor("Y"), do: System.stop(0)
   def request_floor("yes"), do: System.stop(0)
