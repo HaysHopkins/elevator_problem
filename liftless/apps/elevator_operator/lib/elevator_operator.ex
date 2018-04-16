@@ -14,5 +14,6 @@ defmodule ElevatorOperator do
     ]
 
     Supervisor.start_link(children, opts)
+    ElevatorOperator.CLI.start()
   end
 end

@@ -50,6 +50,7 @@ defmodule Elevator do
   defp update_move_order(nil, [h | t]), do: {h, t}
   defp update_move_order(destination, next), do: {destination, next}
 
+  defp next_floor(current_floor, nil), do: current_floor
   defp next_floor(current_floor, destination) when current_floor < destination, do: current_floor + 1
   defp next_floor(current_floor, destination) when current_floor > destination, do: current_floor - 1
   defp next_floor(current_floor, _), do: current_floor

@@ -12,7 +12,7 @@ defmodule ElevatorOperator.Attendant do
   end
 
   def request_lift(request, request_destination) do
-    GenServer.call(__MODULE__, {:request_lift, request-1, request_destination-1})
+    GenServer.call(__MODULE__, {:request_lift, request, request_destination})
   end
 
 
@@ -52,6 +52,8 @@ defmodule ElevatorOperator.Attendant do
                       |> operate_elevators()
                       |> create_post_move_state(post_assign_state)
 
+    announce_current_statuses(post_move_state.elevators)
+
     {:reply, nil, post_move_state}
   end
 
@@ -79,11 +81,18 @@ defmodule ElevatorOperator.Attendant do
     end
 
     defp current_status(el) do
-      "\nElevator #{el.name} is currently on floor #{el.current_floor} and #{current_action(el.destination)}"
+      "\nElevator #{el.name} is currently on floor #{el.current_floor} and #{current_action(el.destination, el.next, el.current_floor)}"
     end
 
-    defp current_action(nil), do: "ready"
-    defp current_action(destination), do: "in transit to #{destination}"
+    defp current_action(nil, [], _), do: "ready"
+    defp current_action(destination, current_floor, []) when destination == current_floor do
+     "ready"
+    end
+    defp current_action(nil, current_floor, [h | t]), do: current_action(h, current_floor, t)
+    defp current_action(destination, [h | t], current_floor) when destination == current_floor do
+      current_action(h, current_floor, t)
+    end
+    defp current_action(destination, _, _), do: "in transit to #{destination}"
 
 
     # Elevator Assignment #
