@@ -39,14 +39,9 @@ defmodule ElevatorOperator.Attendant do
 
     elevator_data = ElevatorOperator.Optimizer.find_nearest_elevator(state.elevators, request, request_dest)
 
-    post_enqueue_state = elevator_data
-                         |> announce_nearest_elevator()
-                         |> enqueue_rider(request, request_dest, state.request_queues)
-                         |> create_post_enqueue_state(state)
+    post_enqueue_state = enqueue(elevator_data, request, request_dest, state)
 
-    post_assign_state = elevator_data
-                        |> assign_elevator(state.elevators, request, request_dest)
-                        |> create_post_assign_state(post_enqueue_state)
+    post_assign_state = assign(elevator_data, request, request_dest, post_enqueue_state)
 
     post_move_state = post_assign_state
                       |> operate_elevators()
@@ -60,6 +55,20 @@ defmodule ElevatorOperator.Attendant do
 
   # PRIVATE HELPER METHODS #
 
+    def enqueue(elevator_data, request, request_dest, state) when request != request_dest do
+      elevator_data
+      |> announce_nearest_elevator()
+      |> enqueue_rider(request, request_dest, state.request_queues)
+      |> create_post_enqueue_state(state)
+    end
+    def enqueue(_, _, _, state), do: state
+
+    def assign(elevator_data, request, request_dest, post_enqueue_state) when request != request_dest do
+      elevator_data
+      |> assign_elevator(post_enqueue_state.elevators, request, request_dest)
+      |> create_post_assign_state(post_enqueue_state)
+    end
+    def assign(_, _, _, post_enqueue_state), do: post_enqueue_state
 
     # Elevator Assignment #
 
