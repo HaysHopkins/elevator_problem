@@ -21,13 +21,13 @@ defmodule ElevatorOperator.Attendant do
   def init(args) do
     top_floor = List.last(args)-1
     request_queues = Map.new((0..top_floor), fn(floor) ->
-                    {floor, []}
-                  end)
+                      {floor, []}
+                     end)
     elevators = Enum.map((0..List.first(args)-1), fn(floor) ->
                   %Elevator{name: floor, destination_queues: Map.new(request_queues), max_floor: top_floor}
                 end)
 
-    {:ok, %{elevators: elevators, request_queues: request_queues, top_floor: top_floor}}
+    {:ok, %{elevators: elevators, top_floor: top_floor}}
   end
 
   def handle_call(:get_state, _from, state) do
