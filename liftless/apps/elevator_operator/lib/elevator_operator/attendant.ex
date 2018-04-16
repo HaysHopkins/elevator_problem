@@ -94,7 +94,9 @@ defmodule ElevatorOperator.Attendant do
 
         {[new_el | new_els], updated_request_queue}
       end)
+      |> reorder_elevators()
     end
+    defp reorder_elevators({elevators, request_queues}), do: {Enum.reverse(elevators), request_queues}
 
 
     # State Maintenance #
