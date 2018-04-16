@@ -52,7 +52,7 @@ defmodule ElevatorOperator.Attendant do
                       |> operate_elevators()
                       |> create_post_move_state(post_assign_state)
 
-    {:reply, nil, post_enqueue_state}
+    {:reply, nil, post_move_state}
   end
 
 

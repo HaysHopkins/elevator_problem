@@ -8,10 +8,6 @@ defmodule ElevatorOperator.Optimizer do
     end)
   end
 
-  defp take_min(value, :infinity), do: value
-  defp take_min({x, val1, y}, {_, val2, _}) when val1 < val2, do: {x, val1, y}
-  defp take_min({_, val1, _}, {i, val2, j}) when val2 <= val1, do: {i, val2, j}
-
   # Stop calculating if total is greater than the current min
   defp calculate_steps(_, _, _, _, total, min) when total > min, do: {{false, false}, :infinity}
   # Requests in range of current lift movements, return total
@@ -42,4 +38,8 @@ defmodule ElevatorOperator.Optimizer do
       false -> calculate_steps({add_start, add_end}, request, request_dest, next, next_steps, total + abs(last-next), min)
     end
   end
+
+  defp take_min(value, :infinity), do: value
+  defp take_min({x, val1, y}, {_, val2, _}) when val1 < val2, do: {x, val1, y}
+  defp take_min({_, val1, _}, {i, val2, j}) when val2 <= val1, do: {i, val2, j}
 end
