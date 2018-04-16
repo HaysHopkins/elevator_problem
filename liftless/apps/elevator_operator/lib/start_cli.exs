@@ -1,1 +1,1 @@
-ElevatorOperator.start(10, 1000)
+ElevatorOperator.start(1000, 10)

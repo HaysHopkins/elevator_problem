@@ -19,11 +19,11 @@ defmodule ElevatorOperator.Attendant do
   # CALLBACKS #
 
   def init(args) do
-    top_floor = List.last(args)-1
+    top_floor = List.first(args)-1
     request_queues = Map.new((0..top_floor), fn(floor) ->
                       {floor, []}
                      end)
-    elevators = Enum.map((0..List.first(args)-1), fn(floor) ->
+    elevators = Enum.map((0..List.last(args)-1), fn(floor) ->
                   %Elevator{name: floor, destination_queues: Map.new(request_queues), max_floor: top_floor}
                 end)
 
@@ -59,40 +59,6 @@ defmodule ElevatorOperator.Attendant do
 
 
   # PRIVATE HELPER METHODS #
-
-
-    # Status Announcements #
-
-    defp announce_current_statuses(elevators) do
-      elevators
-      |> current_statuses()
-      |> IO.puts()
-    end
-
-    def announce_nearest_elevator({update_needed, steps, name}) do
-      IO.puts "Current requester will be picked up by elevator #{name}"
-      {update_needed, steps, name}
-    end
-
-    defp current_statuses(els) do
-      Enum.reduce(els, "", fn(el, msg) ->
-        msg <> current_status(el)
-      end)
-    end
-
-    defp current_status(el) do
-      "\nElevator #{el.name} is currently on floor #{el.current_floor} and #{current_action(el.destination, el.next, el.current_floor)}"
-    end
-
-    defp current_action(nil, [], _), do: "ready"
-    defp current_action(destination, current_floor, []) when destination == current_floor do
-     "ready"
-    end
-    defp current_action(nil, current_floor, [h | t]), do: current_action(h, current_floor, t)
-    defp current_action(destination, [h | t], current_floor) when destination == current_floor do
-      current_action(h, current_floor, t)
-    end
-    defp current_action(destination, _, _), do: "in transit to #{destination}"
 
 
     # Elevator Assignment #
@@ -153,4 +119,37 @@ defmodule ElevatorOperator.Attendant do
     defp create_post_move_state({elevators, request_queues}, state) do
       %{state | elevators: elevators, request_queues: request_queues}
     end
+
+    # Status Announcements #
+
+    defp announce_current_statuses(elevators) do
+      elevators
+      |> current_statuses()
+      |> IO.puts()
+    end
+
+    def announce_nearest_elevator({update_needed, steps, name}) do
+      IO.puts "Current requester will be picked up by elevator #{name}"
+      {update_needed, steps, name}
+    end
+
+    defp current_statuses(els) do
+      Enum.reduce(els, "", fn(el, msg) ->
+        msg <> current_status(el)
+      end)
+    end
+
+    defp current_status(el) do
+      "\nElevator #{el.name} is currently on floor #{el.current_floor} and #{current_action(el.destination, el.next, el.current_floor)}"
+    end
+
+    defp current_action(nil, [], _), do: "ready"
+    defp current_action(destination, current_floor, []) when destination == current_floor do
+     "ready"
+    end
+    defp current_action(nil, current_floor, [h | t]), do: current_action(h, current_floor, t)
+    defp current_action(destination, [h | t], current_floor) when destination == current_floor do
+      current_action(h, current_floor, t)
+    end
+    defp current_action(destination, _, _), do: "in transit to #{destination}"
 end

@@ -7,7 +7,7 @@ defmodule Elevator do
                              |> clear_arrivals(elevator.current_floor)
                              |> add_departures(boarding)
 
-    {new_destination, new_next} = update_move_order(elevator.destination, elevator.next)
+    {new_destination, new_next} = update_move_order(elevator.destination, elevator.next, elevator.current_floor)
 
     current_floor = next_floor(elevator.current_floor, new_destination)
 
@@ -46,9 +46,11 @@ defmodule Elevator do
     end)
   end
 
-  defp update_move_order(nil, nil), do: {nil, nil}
-  defp update_move_order(nil, [h | t]), do: {h, t}
-  defp update_move_order(destination, next), do: {destination, next}
+  defp update_move_order(nil, [], _), do: {nil, []}
+  defp update_move_order(nil, [h | t], _), do: {h, t}
+  defp update_move_order(destination, [], current_floor) when destination == current_floor, do: {nil, []}
+  defp update_move_order(destination, [h|t], current_floor) when destination == current_floor, do: {h, t}
+  defp update_move_order(destination, next, _), do: {destination, next}
 
   defp next_floor(current_floor, nil), do: current_floor
   defp next_floor(current_floor, destination) when current_floor < destination, do: current_floor + 1
