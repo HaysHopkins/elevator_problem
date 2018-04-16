@@ -27,31 +27,32 @@ defmodule ElevatorOperator.Attendant do
                   %Elevator{name: floor, destination_queues: Map.new(request_queues), max_floor: top_floor}
                 end)
 
-    {:ok, %{elevators: elevators, top_floor: top_floor}}
+    {:ok, %{elevators: elevators, request_queues: request_queues, top_floor: top_floor}}
   end
 
   def handle_call(:get_state, _from, state) do
     {:reply, state, state}
   end
 
-  def handle_call({:request_lift, request, request_Dest}, _from, state) do
+  def handle_call({:request_lift, request, request_dest}, _from, state) do
     announce_current_statuses(state.elevators)
 
     elevator_data = ElevatorOperator.Optimizer.find_nearest_elevator(state.elevators, request, request_dest)
 
     post_enqueue_state = elevator_data
                          |> announce_nearest_elevator()
-                         |> enqueue_rider(current_floor, destination, state)
+                         |> enqueue_rider(request, request_dest, state.request_queues)
                          |> create_post_enqueue_state(state)
 
     post_assign_state = elevator_data
                         |> assign_elevator(state.elevators, request, request_dest)
                         |> create_post_assign_state(post_enqueue_state)
 
-    # post_move_state = move_elevators(state.elevators)
-    #                   |> create_post_move_state()
+    # post_move_state = post_assign_state
+    #                   |> move_elevators()
+    #                   |> create_post_move_state(post_assign_state)
 
-    {:reply, nil, pre_move_state}
+    {:reply, nil, post_enqueue_state}
   end
 
 
@@ -84,23 +85,28 @@ defmodule ElevatorOperator.Attendant do
     defp current_action(nil), do: "ready"
     defp current_action(destination), do: "in transit to #{destination}"
 
+
     # Elevator Assignment #
 
-    defp enqueue_rider({_, _, name}, request, request_dest, state) do
+    defp enqueue_rider({_, _, name}, request, request_dest, request_queues) do
       occupant = %Occupant{request: request, request_dest: request_dest, elevator: name}
-      %{request_queues | occupant.request => [occupant | request_queues[occupant.request_floor]]}
+      %{request_queues | occupant.request => [occupant | request_queues[occupant.request]]} # CUTTER!
     end
 
-    def assign_elevator({{false, false}, _, _}, elevators, _, _), do: elevators
-    def assign_elevator({{false, true}, _, name}, elevators, _, destination) do
+    defp assign_elevator({{false, false}, _, _}, elevators, _, _), do: elevators
+    defp assign_elevator({{false, true}, _, name}, elevators, _, request_dest) do
       Enum.reduce(elevators, [], fn(el, new_els)->
-        if el.name == name
-        end
+        new_el = if (el.name == name), do: Elevator.add_destinations(el, [request_dest]), else: el
+        [new_el | new_els]
       end)
+      |> Enum.reverse()
     end
-    def assign_elevator(update_data, elevators, current_floor, destination) do
-      IO.inspect(update_data)
-      IO.inspect(elevators)
+    defp assign_elevator({_, _, name}, elevators, request, request_dest) do
+      Enum.reduce(elevators, [], fn(el, new_els)->
+        new_el = if (el.name == name), do: Elevator.add_destinations(el, [request, request_dest]), else: el
+        [new_el | new_els]
+      end)
+      |> Enum.reverse()
     end
 
     # Elevator Movement #
